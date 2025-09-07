@@ -199,7 +199,7 @@
             text-align: center;
         }
 
-        .status-pending { background: #fff3e0; color: #f57c00; }
+        .status-pending { background: #fffde7; color: #f9a825; }
         .status-applied { background: #e8f4fd; color: #1976d2; }
         .status-screening { background: #fff3e0; color: #f57c00; }
         .status-interview { background: #f3e5f5; color: #7b1fa2; }
@@ -635,11 +635,17 @@
                 const nodes = [];
                 const links = [];
 
+                // Add progress stages as main flow nodes
                 progressStages.forEach((stage, index) => {
                     nodes.push({ id: stage, name: stage, category: 'progress' });
                 });
 
-                outcomes.forEach(outcome => {
+                // Add Accepted as a main flow continuation (after Offer)
+                nodes.push({ id: 'Accepted', name: 'Accepted', category: 'progress' });
+
+                // Add terminating outcomes (not including Accepted since it's in main flow)
+                const terminatingOutcomes = ['Declined', 'Withdrawn', 'Ghosted'];
+                terminatingOutcomes.forEach(outcome => {
                     nodes.push({ id: outcome, name: outcome, category: 'outcome' });
                 });
 
@@ -648,6 +654,7 @@
                 this.applications.forEach(app => {
                     const progressIndex = progressStages.indexOf(app.progress);
                     
+                    // Track flows through all stages up to current progress
                     for (let i = 0; i < progressIndex; i++) {
                         const from = progressStages[i];
                         const to = progressStages[i + 1];
@@ -655,9 +662,24 @@
                         flowCounts[key] = (flowCounts[key] || 0) + 1;
                     }
 
+                    // Handle outcomes
                     if (app.outcome) {
-                        const key = `${app.progress}->${app.outcome}`;
-                        flowCounts[key] = (flowCounts[key] || 0) + 1;
+                        if (app.outcome === 'Accepted') {
+                            // If accepted, first flow to Offer (if not already there), then to Accepted
+                            if (app.progress !== 'Offer') {
+                                const key = `${app.progress}->Offer`;
+                                flowCounts[key] = (flowCounts[key] || 0) + 1;
+                            }
+                            const acceptedKey = `Offer->Accepted`;
+                            flowCounts[acceptedKey] = (flowCounts[acceptedKey] || 0) + 1;
+                        } else {
+                            // Other outcomes flow directly from current progress stage
+                            const key = `${app.progress}->${app.outcome}`;
+                            flowCounts[key] = (flowCounts[key] || 0) + 1;
+                        }
+                    } else if (app.progress === 'Offer') {
+                        // If at Offer stage with no outcome, it's still in progress
+                        // Don't create any terminating flow
                     }
                 });
 
@@ -681,7 +703,7 @@
                 });
 
                 const stageColors = {
-                    'Pending': '#f57c00',
+                    'Pending': '#f9a825',
                     'Applied': '#1976d2',
                     'Screening': '#f57c00',
                     'Interview': '#7b1fa2',
@@ -694,8 +716,75 @@
 
                 const color = (d) => stageColors[d.name] || '#666';
 
+                // Create gradients for nodes
+                const defs = svg.append("defs");
+                Object.entries(stageColors).forEach(([name, baseColor]) => {
+                    const gradient = defs.append("linearGradient")
+                        .attr("id", `nodeGradient-${name}`)
+                        .attr("x1", "0%")
+                        .attr("y1", "0%")
+                        .attr("x2", "0%")
+                        .attr("y2", "100%");
+                    
+                    gradient.append("stop")
+                        .attr("offset", "0%")
+                        .attr("stop-color", d3.color(baseColor).brighter(0.3))
+                        .attr("stop-opacity", "0.9");
+                    
+                    gradient.append("stop")
+                        .attr("offset", "100%")
+                        .attr("stop-color", baseColor)
+                        .attr("stop-opacity", "0.9");
+                });
+
                 const g = svg.append("g");
 
+                // Draw links with gradients
+                g.append("g")
+                    .selectAll("path")
+                    .data(sankeyLinks)
+                    .join("path")
+                    .attr("d", d3.sankeyLinkHorizontal())
+                    .attr("fill", "none")
+                    .attr("stroke", d => {
+                        const sourceColor = color(d.source);
+                        const targetColor = color(d.target);
+                        
+                        // Create a gradient for each link
+                        const linkGradient = defs.append("linearGradient")
+                            .attr("id", `linkGradient-${d.source.name}-${d.target.name}`)
+                            .attr("gradientUnits", "userSpaceOnUse")
+                            .attr("x1", d.source.x1)
+                            .attr("x2", d.target.x0);
+                        
+                        linkGradient.append("stop")
+                            .attr("offset", "0%")
+                            .attr("stop-color", sourceColor)
+                            .attr("stop-opacity", "0.6");
+                        
+                        linkGradient.append("stop")
+                            .attr("offset", "100%")
+                            .attr("stop-color", targetColor)
+                            .attr("stop-opacity", "0.6");
+                        
+                        return `url(#linkGradient-${d.source.name}-${d.target.name})`;
+                    })
+                    .attr("stroke-width", d => Math.max(2, d.width))
+                    .style("opacity", 0.7)
+                    .on("mouseover", function(event, d) {
+                        d3.select(this)
+                            .style("opacity", 0.9)
+                            .attr("stroke-width", d => Math.max(3, d.width + 1));
+                    })
+                    .on("mouseout", function(event, d) {
+                        d3.select(this)
+                            .style("opacity", 0.7)
+                            .attr("stroke-width", d => Math.max(2, d.width));
+                    })
+                    .append("title")
+                    .text(d => `${d.source.name} → ${d.target.name}: ${d.value}`);
+
+                // Draw nodes with gradients and enhanced styling
                 g.append("g")
                     .selectAll("rect")
                     .data(sankeyNodes)
@@ -704,33 +793,43 @@
                     .attr("y", d => d.y0)
                     .attr("height", d => d.y1 - d.y0)
                     .attr("width", d => d.x1 - d.x0)
-                    .attr("fill", d => color(d))
+                    .attr("fill", d => `url(#nodeGradient-${d.name})`)
+                    .attr("rx", 6)
+                    .attr("ry", 6)
+                    .style("filter", "drop-shadow(0px 2px 4px rgba(0,0,0,0.1))")
+                    .on("mouseover", function() {
+                        d3.select(this)
+                            .style("filter", "drop-shadow(0px 4px 8px rgba(0,0,0,0.2))")
+                            .transition()
+                            .duration(200)
+                            .attr("rx", 8)
+                            .attr("ry", 8);
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this)
+                            .style("filter", "drop-shadow(0px 2px 4px rgba(0,0,0,0.1))")
+                            .transition()
+                            .duration(200)
+                            .attr("rx", 6)
+                            .attr("ry", 6);
+                    })
                     .append("title")
                     .text(d => `${d.name}: ${d.value}`);
 
+                // Draw node labels with better styling
                 g.append("g")
                     .selectAll("text")
                     .data(sankeyNodes)
                     .join("text")
-                    .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+                    .attr("x", d => d.x0 < width / 2 ? d.x1 + 8 : d.x0 - 8)
                     .attr("y", d => (d.y1 + d.y0) / 2)
                     .attr("dy", "0.35em")
                     .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
-                    .text(d => d.name)
-                    .style("font-size", "12px")
-                    .style("fill", "#333");
-
-                g.append("g")
-                    .selectAll("path")
-                    .data(sankeyLinks)
-                    .join("path")
-                    .attr("d", d3.sankeyLinkHorizontal())
-                    .attr("stroke", "#aaa")
-                    .attr("stroke-width", d => Math.max(1, d.width))
-                    .style("mix-blend-mode", "multiply")
-                    .style("opacity", 0.6)
-                    .append("title")
-                    .text(d => `${d.source.name} → ${d.target.name}: ${d.value}`);
+                    .text(d => `${d.name} (${d.value})`)
+                    .style("font-size", "13px")
+                    .style("font-weight", "600")
+                    .style("fill", "#2c3e50")
+                    .style("text-shadow", "0 1px 2px rgba(255,255,255,0.8)");
             }
 
             saveApplications() {
