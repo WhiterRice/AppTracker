@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Tracker</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-section, .applications-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-section h2, .applications-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .applications-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .application-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            align-items: center;
+            background: #fafafa;
+            font-size: 13px;
+        }
+
+        .application-item.editing {
+            background: #fff8dc;
+            border-color: #007bff;
+        }
+
+        .application-item:hover {
+            background: #f0f8ff;
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-applied { background: #d4edda; color: #155724; }
+        .status-screening { background: #cce5ff; color: #004085; }
+        .status-interview { background: #e2e3e5; color: #383d41; }
+        .status-offer { background: #f8d7da; color: #721c24; }
+
+        .outcome-declined { background: #f8d7da; color: #721c24; }
+        .outcome-withdrawn { background: #ffeaa7; color: #6c5700; }
+        .outcome-ghosted { background: #e2e3e5; color: #383d41; }
+        .outcome-accepted { background: #d1ecf1; color: #0c5460; }
+
+        .visualization-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .visualization-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        #sankey {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .delete-btn, .edit-btn, .save-btn, .cancel-btn {
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #138496;
+        }
+
+        .save-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #218838;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+        }
+
+        .edit-select, .edit-input {
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 80px;
+        }
+
+        .salary-field, .rto-field {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .salary-field:empty:before {
+            content: "Not specified";
+            color: #999;
+            font-style: italic;
+        }
+
+        .rto-field:empty:before {
+            content: "Not specified";
+            color: #999;
+            font-style: italic;
+        }
+
+        .status-badge.clickable {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-badge.clickable:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 1200px) {
+            .application-item {
+                grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.8fr 1fr;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .application-item {
+                grid-template-columns: 1fr;
+                text-align: left;
+            }
+            
+            .application-item > div {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 5px 0;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .application-item > div:last-child {
+                border-bottom: none;
+                justify-content: flex-start;
+                gap: 10px;
+            }
+        }
+
+        .node rect {
+            cursor: move;
+            fill-opacity: .9;
+            shape-rendering: crispEdges;
+        }
+
+        .node text {
+            pointer-events: none;
+            text-shadow: 0 1px 0 #fff;
+            font-size: 12px;
+        }
+
+        .link {
+            fill: none;
+            stroke: #000;
+            stroke-opacity: .2;
+        }
+
+        .link:hover {
+            stroke-opacity: .5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Job Application Tracker</h1>
+        
+        <div class="main-content">
+            <div class="form-section">
+                <h2>Add New Application</h2>
+                <form id="applicationForm">
+                    <div class="form-group">
+                        <label for="company">Company Name</label>
+                        <input type="text" id="company" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="position">Position</label>
+                        <input type="text" id="position" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="salary">Salary Range (Optional)</label>
+                        <input type="text" id="salary" placeholder="e.g., $80k-$100k">
+                    </div>
+                    <div class="form-group">
+                        <label for="rto">RTO Policy (Optional)</label>
+                        <select id="rto">
+                            <option value="">Not specified</option>
+                            <option value="Full Remote">Full Remote</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Full In-Office">Full In-Office</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="progress">Progress Status</label>
+                        <select id="progress" required>
+                            <option value="">Select Progress</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Applied">Applied</option>
+                            <option value="Screening">Screening</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Offer">Offer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="outcome">Final Outcome (Optional)</label>
+                        <select id="outcome">
+                            <option value="">None/In Progress</option>
+                            <option value="Declined">Declined</option>
+                            <option value="Withdrawn">Withdrawn</option>
+                            <option value="Ghosted">Ghosted</option>
+                            <option value="Accepted">Accepted</option>
+                        </select>
+                    </div>
+                    <button type="submit">Add Application</button>
+                </form>
+            </div>
+
+            <div class="applications-section">
+                <h2>Applications</h2>
+                <div class="applications-list" id="applicationsList">
+                </div>
+            </div>
+        </div>
+
+        <div class="visualization-section">
+            <h2>Application Flow Visualization</h2>
+            <svg id="sankey"></svg>
+        </div>
+    </div>
+
+    <script>
+        class JobApplicationTracker {
+            constructor() {
+                this.applications = this.loadApplications();
+                this.editingAppId = null;
+                this.initializeEventListeners();
+                this.renderApplications();
+                this.updateVisualization();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('applicationForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addApplication();
+                });
+            }
+
+            addApplication() {
+                const company = document.getElementById('company').value.trim();
+                const position = document.getElementById('position').value.trim();
+                const salary = document.getElementById('salary').value.trim();
+                const rto = document.getElementById('rto').value;
+                const progress = document.getElementById('progress').value;
+                const outcome = document.getElementById('outcome').value;
+
+                if (!company || !position || !progress) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+
+                const application = {
+                    id: Date.now(),
+                    company,
+                    position,
+                    salary,
+                    rto,
+                    progress,
+                    outcome,
+                    createdAt: new Date().toISOString()
+                };
+
+                this.applications.push(application);
+                this.saveApplications();
+                this.renderApplications();
+                this.updateVisualization();
+                document.getElementById('applicationForm').reset();
+            }
+
+            deleteApplication(id) {
+                this.applications = this.applications.filter(app => app.id !== id);
+                this.saveApplications();
+                this.renderApplications();
+                this.updateVisualization();
+            }
+
+            editApplication(id) {
+                this.editingAppId = id;
+                this.renderApplications();
+            }
+
+            saveApplication(id) {
+                const salaryInput = document.getElementById(`salary-${id}`);
+                const rtoSelect = document.getElementById(`rto-${id}`);
+                const progressSelect = document.getElementById(`progress-${id}`);
+                const outcomeSelect = document.getElementById(`outcome-${id}`);
+                
+                const app = this.applications.find(app => app.id === id);
+                if (app) {
+                    app.salary = salaryInput.value.trim();
+                    app.rto = rtoSelect.value;
+                    app.progress = progressSelect.value;
+                    app.outcome = outcomeSelect.value;
+                    
+                    this.editingAppId = null;
+                    this.saveApplications();
+                    this.renderApplications();
+                    this.updateVisualization();
+                }
+            }
+
+            cancelEdit() {
+                this.editingAppId = null;
+                this.renderApplications();
+            }
+
+            renderApplications() {
+                const container = document.getElementById('applicationsList');
+                container.innerHTML = '';
+
+                this.applications.forEach(app => {
+                    const item = document.createElement('div');
+                    item.className = `application-item ${this.editingAppId === app.id ? 'editing' : ''}`;
+                    
+                    const progressClass = `status-${app.progress.toLowerCase()}`;
+                    const outcomeClass = app.outcome ? `outcome-${app.outcome.toLowerCase()}` : '';
+                    
+                    if (this.editingAppId === app.id) {
+                        item.innerHTML = `
+                            <div>
+                                <div class="company-name">${app.company}</div>
+                                <div>${app.position}</div>
+                            </div>
+                            <div>
+                                <input id="salary-${app.id}" class="edit-input" value="${app.salary || ''}" placeholder="e.g., $80k-$100k">
+                            </div>
+                            <div>
+                                <select id="rto-${app.id}" class="edit-select">
+                                    <option value="" ${!app.rto ? 'selected' : ''}>Not specified</option>
+                                    <option value="Full Remote" ${app.rto === 'Full Remote' ? 'selected' : ''}>Full Remote</option>
+                                    <option value="Hybrid" ${app.rto === 'Hybrid' ? 'selected' : ''}>Hybrid</option>
+                                    <option value="Full In-Office" ${app.rto === 'Full In-Office' ? 'selected' : ''}>Full In-Office</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select id="progress-${app.id}" class="edit-select">
+                                    <option value="Pending" ${app.progress === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="Applied" ${app.progress === 'Applied' ? 'selected' : ''}>Applied</option>
+                                    <option value="Screening" ${app.progress === 'Screening' ? 'selected' : ''}>Screening</option>
+                                    <option value="Interview" ${app.progress === 'Interview' ? 'selected' : ''}>Interview</option>
+                                    <option value="Offer" ${app.progress === 'Offer' ? 'selected' : ''}>Offer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select id="outcome-${app.id}" class="edit-select">
+                                    <option value="" ${!app.outcome ? 'selected' : ''}>In Progress</option>
+                                    <option value="Declined" ${app.outcome === 'Declined' ? 'selected' : ''}>Declined</option>
+                                    <option value="Withdrawn" ${app.outcome === 'Withdrawn' ? 'selected' : ''}>Withdrawn</option>
+                                    <option value="Ghosted" ${app.outcome === 'Ghosted' ? 'selected' : ''}>Ghosted</option>
+                                    <option value="Accepted" ${app.outcome === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button class="save-btn" onclick="tracker.saveApplication(${app.id})">Save</button>
+                                <button class="cancel-btn" onclick="tracker.cancelEdit()">Cancel</button>
+                            </div>
+                        `;
+                    } else {
+                        item.innerHTML = `
+                            <div>
+                                <div class="company-name">${app.company}</div>
+                                <div>${app.position}</div>
+                            </div>
+                            <div class="salary-field" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.salary || ''}</div>
+                            <div class="rto-field" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.rto || ''}</div>
+                            <div class="status-badge ${progressClass} clickable" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.progress}</div>
+                            <div class="status-badge ${outcomeClass} clickable" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.outcome || 'In Progress'}</div>
+                            <div>
+                                <button class="edit-btn" onclick="tracker.editApplication(${app.id})">Edit</button>
+                                <button class="delete-btn" onclick="tracker.deleteApplication(${app.id})">Delete</button>
+                            </div>
+                        `;
+                    }
+                    
+                    container.appendChild(item);
+                });
+            }
+
+            updateVisualization() {
+                this.createSankeyDiagram();
+            }
+
+            createSankeyDiagram() {
+                const svg = d3.select("#sankey");
+                svg.selectAll("*").remove();
+
+                if (this.applications.length === 0) {
+                    svg.append("text")
+                        .attr("x", "50%")
+                        .attr("y", "50%")
+                        .attr("text-anchor", "middle")
+                        .attr("dominant-baseline", "middle")
+                        .style("font-size", "16px")
+                        .style("fill", "#666")
+                        .text("No applications to visualize");
+                    return;
+                }
+
+                const width = parseInt(svg.style("width"));
+                const height = parseInt(svg.style("height"));
+                const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+
+                const progressStages = ['Pending', 'Applied', 'Screening', 'Interview', 'Offer'];
+                const outcomes = ['Declined', 'Withdrawn', 'Ghosted', 'Accepted'];
+
+                const nodes = [];
+                const links = [];
+
+                progressStages.forEach((stage, index) => {
+                    nodes.push({ id: stage, name: stage, category: 'progress' });
+                });
+
+                outcomes.forEach(outcome => {
+                    nodes.push({ id: outcome, name: outcome, category: 'outcome' });
+                });
+
+                const flowCounts = {};
+
+                this.applications.forEach(app => {
+                    const progressIndex = progressStages.indexOf(app.progress);
+                    
+                    for (let i = 0; i < progressIndex; i++) {
+                        const from = progressStages[i];
+                        const to = progressStages[i + 1];
+                        const key = `${from}->${to}`;
+                        flowCounts[key] = (flowCounts[key] || 0) + 1;
+                    }
+
+                    if (app.outcome) {
+                        const key = `${app.progress}->${app.outcome}`;
+                        flowCounts[key] = (flowCounts[key] || 0) + 1;
+                    }
+                });
+
+                Object.entries(flowCounts).forEach(([key, value]) => {
+                    const [source, target] = key.split('->');
+                    links.push({
+                        source: nodes.findIndex(n => n.id === source),
+                        target: nodes.findIndex(n => n.id === target),
+                        value: value
+                    });
+                });
+
+                const sankey = d3.sankey()
+                    .nodeWidth(15)
+                    .nodePadding(10)
+                    .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]]);
+
+                const { nodes: sankeyNodes, links: sankeyLinks } = sankey({
+                    nodes: nodes.map(d => ({ ...d })),
+                    links: links.map(d => ({ ...d }))
+                });
+
+                const color = d3.scaleOrdinal()
+                    .domain(['progress', 'outcome'])
+                    .range(['#007bff', '#28a745']);
+
+                const g = svg.append("g");
+
+                g.append("g")
+                    .selectAll("rect")
+                    .data(sankeyNodes)
+                    .join("rect")
+                    .attr("x", d => d.x0)
+                    .attr("y", d => d.y0)
+                    .attr("height", d => d.y1 - d.y0)
+                    .attr("width", d => d.x1 - d.x0)
+                    .attr("fill", d => color(d.category))
+                    .append("title")
+                    .text(d => `${d.name}: ${d.value}`);
+
+                g.append("g")
+                    .selectAll("text")
+                    .data(sankeyNodes)
+                    .join("text")
+                    .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+                    .attr("y", d => (d.y1 + d.y0) / 2)
+                    .attr("dy", "0.35em")
+                    .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+                    .text(d => d.name)
+                    .style("font-size", "12px")
+                    .style("fill", "#333");
+
+                g.append("g")
+                    .selectAll("path")
+                    .data(sankeyLinks)
+                    .join("path")
+                    .attr("d", d3.sankeyLinkHorizontal())
+                    .attr("stroke", "#aaa")
+                    .attr("stroke-width", d => Math.max(1, d.width))
+                    .style("mix-blend-mode", "multiply")
+                    .style("opacity", 0.6)
+                    .append("title")
+                    .text(d => `${d.source.name} → ${d.target.name}: ${d.value}`);
+            }
+
+            saveApplications() {
+                localStorage.setItem('jobApplications', JSON.stringify(this.applications));
+            }
+
+            loadApplications() {
+                const saved = localStorage.getItem('jobApplications');
+                return saved ? JSON.parse(saved) : [];
+            }
+        }
+
+        const tracker = new JobApplicationTracker();
+    </script>
+</body>
+</html>
