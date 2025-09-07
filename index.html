@@ -394,7 +394,22 @@
         </div>
 
         <div class="applications-section">
-            <h2>Applications</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin-bottom: 0;">Applications</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="sortOptions" style="margin-bottom: 0; font-size: 14px;">Sort by:</label>
+                    <select id="sortOptions" onchange="tracker.setSortOption(this.value)" style="width: auto; min-width: 200px;">
+                        <option value="created-desc">Created Date (Newest First)</option>
+                        <option value="created-asc">Created Date (Oldest First)</option>
+                        <option value="updated-desc">Last Updated (Newest First)</option>
+                        <option value="updated-asc">Last Updated (Oldest First)</option>
+                        <option value="company-asc">Company Name (A-Z)</option>
+                        <option value="company-desc">Company Name (Z-A)</option>
+                        <option value="position-asc">Position (A-Z)</option>
+                        <option value="position-desc">Position (Z-A)</option>
+                    </select>
+                </div>
+            </div>
             <div class="applications-list" id="applicationsList">
             </div>
         </div>
@@ -430,6 +445,7 @@
             constructor() {
                 this.applications = this.loadApplications();
                 this.editingAppId = null;
+                this.sortOption = 'created-desc'; // Default sort
                 this.initializeEventListeners();
                 this.renderApplications();
                 this.updateStats();
@@ -464,7 +480,8 @@
                     rto,
                     progress,
                     outcome,
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
                 };
 
                 this.applications.push(application);
@@ -502,6 +519,7 @@
                     app.rto = rtoSelect.value;
                     app.progress = progressSelect.value;
                     app.outcome = outcomeSelect.value;
+                    app.updatedAt = new Date().toISOString();
                     
                     this.editingAppId = null;
                     this.saveApplications();
@@ -516,6 +534,36 @@
                 this.renderApplications();
             }
 
+            setSortOption(sortOption) {
+                this.sortOption = sortOption;
+                this.renderApplications();
+            }
+
+            sortApplications(applications) {
+                const sorted = [...applications];
+                
+                switch (this.sortOption) {
+                    case 'created-desc':
+                        return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    case 'created-asc':
+                        return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    case 'updated-desc':
+                        return sorted.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+                    case 'updated-asc':
+                        return sorted.sort((a, b) => new Date(a.updatedAt || a.createdAt) - new Date(b.updatedAt || b.createdAt));
+                    case 'company-asc':
+                        return sorted.sort((a, b) => a.company.toLowerCase().localeCompare(b.company.toLowerCase()));
+                    case 'company-desc':
+                        return sorted.sort((a, b) => b.company.toLowerCase().localeCompare(a.company.toLowerCase()));
+                    case 'position-asc':
+                        return sorted.sort((a, b) => a.position.toLowerCase().localeCompare(b.position.toLowerCase()));
+                    case 'position-desc':
+                        return sorted.sort((a, b) => b.position.toLowerCase().localeCompare(a.position.toLowerCase()));
+                    default:
+                        return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                }
+            }
+
             renderApplications() {
                 const container = document.getElementById('applicationsList');
                 
@@ -524,8 +572,8 @@
                     return;
                 }
 
-                // Sort applications by creation date (newest first)
-                const sortedApplications = [...this.applications].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                // Sort applications based on current sort option
+                const sortedApplications = this.sortApplications(this.applications);
                 
                 container.innerHTML = sortedApplications.map(app => {
                     const progressClass = `status-${app.progress.toLowerCase()}`;
@@ -603,6 +651,7 @@
                                     ${app.salary ? `<div class="detail-item"><div class="detail-label">Salary</div><div class="detail-value">${app.salary}</div></div>` : ''}
                                     ${app.rto ? `<div class="detail-item"><div class="detail-label">RTO Policy</div><div class="detail-value">${app.rto}</div></div>` : ''}
                                     <div class="detail-item"><div class="detail-label">Created</div><div class="detail-value">${new Date(app.createdAt).toLocaleDateString()}</div></div>
+                                    ${app.updatedAt && app.updatedAt !== app.createdAt ? `<div class="detail-item"><div class="detail-label">Last Updated</div><div class="detail-value">${new Date(app.updatedAt).toLocaleDateString()}</div></div>` : ''}
                                     <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">${app.outcome || 'In Progress'}</div></div>
                                 </div>
                                 
@@ -916,12 +965,15 @@
                             }
                         });
                         
-                        // Ensure each application has an ID and createdAt
+                        // Ensure each application has an ID, createdAt, and updatedAt
                         if (!app.id) {
                             app.id = Date.now() + index;
                         }
                         if (!app.createdAt) {
                             app.createdAt = new Date().toISOString();
+                        }
+                        if (!app.updatedAt) {
+                            app.updatedAt = app.createdAt;
                         }
                     });
                     
