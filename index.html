@@ -14,20 +14,27 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
             text-align: center;
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
         }
 
         .main-content {
@@ -40,121 +47,210 @@
         .form-section, .applications-section {
             background: white;
             padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e1e8ed;
         }
 
         .form-section h2, .applications-section h2 {
             margin-bottom: 20px;
-            color: #333;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 10px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
         }
 
         label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #34495e;
             font-size: 14px;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        input, select, textarea {
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
         }
 
-        button {
-            background: #007bff;
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
+            padding: 12px 30px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
         }
 
-        button:hover {
-            background: #0056b3;
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
         }
 
         .applications-list {
-            max-height: 400px;
-            overflow-y: auto;
+            max-height: none;
         }
 
-        .application-item {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
-            gap: 10px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            align-items: center;
-            background: #fafafa;
-            font-size: 13px;
+        .job-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
         }
 
-        .application-item.editing {
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .job-card.editing {
             background: #fff8dc;
-            border-color: #007bff;
+            border-left-color: #f39c12;
         }
 
-        .application-item:hover {
-            background: #f0f8ff;
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .job-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
         }
 
         .company-name {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .job-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 12px;
             font-weight: 600;
-            color: #333;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 500;
         }
 
         .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 6px 15px;
+            border-radius: 20px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: uppercase;
             text-align: center;
         }
 
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-applied { background: #d4edda; color: #155724; }
-        .status-screening { background: #cce5ff; color: #004085; }
-        .status-interview { background: #e2e3e5; color: #383d41; }
-        .status-offer { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #fff3e0; color: #f57c00; }
+        .status-applied { background: #e8f4fd; color: #1976d2; }
+        .status-screening { background: #fff3e0; color: #f57c00; }
+        .status-interview { background: #f3e5f5; color: #7b1fa2; }
+        .status-offer { background: #e8f5e8; color: #388e3c; }
 
-        .outcome-declined { background: #f8d7da; color: #721c24; }
-        .outcome-withdrawn { background: #ffeaa7; color: #6c5700; }
-        .outcome-ghosted { background: #e2e3e5; color: #383d41; }
-        .outcome-accepted { background: #d1ecf1; color: #0c5460; }
+        .outcome-declined { background: #ffebee; color: #d32f2f; }
+        .outcome-withdrawn { background: #f5f5f5; color: #616161; }
+        .outcome-ghosted { background: #f5f5f5; color: #616161; }
+        .outcome-accepted { background: #e8f5e8; color: #388e3c; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
 
         .visualization-section {
             background: white;
             padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e1e8ed;
         }
 
-        .visualization-section h2 {
+        .sankey-title {
+            text-align: center;
             margin-bottom: 20px;
-            color: #333;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1.5em;
+            font-weight: 600;
         }
 
         #sankey {
@@ -164,115 +260,32 @@
             border-radius: 4px;
         }
 
-        .delete-btn, .edit-btn, .save-btn, .cancel-btn {
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin: 2px;
-        }
-
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-        }
-
-        .delete-btn:hover {
-            background: #c82333;
-        }
-
-        .edit-btn {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .edit-btn:hover {
-            background: #138496;
-        }
-
-        .save-btn {
-            background: #28a745;
-            color: white;
-        }
-
-        .save-btn:hover {
-            background: #218838;
-        }
-
-        .cancel-btn {
-            background: #6c757d;
-            color: white;
-        }
-
-        .cancel-btn:hover {
-            background: #5a6268;
-        }
-
         .edit-select, .edit-input {
-            padding: 4px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-            min-width: 80px;
+            padding: 8px 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            width: 100%;
         }
 
-        .salary-field, .rto-field {
-            font-size: 12px;
-            color: #666;
+        .edit-select:focus, .edit-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .salary-field:empty:before {
-            content: "Not specified";
-            color: #999;
-            font-style: italic;
-        }
-
-        .rto-field:empty:before {
-            content: "Not specified";
-            color: #999;
-            font-style: italic;
-        }
-
-        .status-badge.clickable {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .status-badge.clickable:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        @media (max-width: 1200px) {
-            .application-item {
-                grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.8fr 1fr;
-                font-size: 12px;
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
-        }
-
-        @media (max-width: 1024px) {
-            .main-content {
+            
+            .form-row {
                 grid-template-columns: 1fr;
             }
             
-            .application-item {
+            .job-details {
                 grid-template-columns: 1fr;
-                text-align: left;
-            }
-            
-            .application-item > div {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 5px 0;
-                border-bottom: 1px solid #eee;
-            }
-            
-            .application-item > div:last-child {
-                border-bottom: none;
-                justify-content: flex-start;
-                gap: 10px;
             }
         }
 
@@ -301,26 +314,48 @@
 </head>
 <body>
     <div class="container">
-        <h1>Job Application Tracker</h1>
+        <h1>🎯 Job Application Tracker</h1>
         
-        <div class="main-content">
-            <div class="form-section">
-                <h2>Add New Application</h2>
-                <form id="applicationForm">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalJobs">0</div>
+                <div class="stat-label">Total Applications</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeJobs">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="interviewJobs">0</div>
+                <div class="stat-label">Interviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="offerJobs">0</div>
+                <div class="stat-label">Offers</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Add New Application</h2>
+            <form id="applicationForm">
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="company">Company Name</label>
+                        <label for="company">Company Name *</label>
                         <input type="text" id="company" required>
                     </div>
                     <div class="form-group">
-                        <label for="position">Position</label>
+                        <label for="position">Position *</label>
                         <input type="text" id="position" required>
                     </div>
                     <div class="form-group">
-                        <label for="salary">Salary Range (Optional)</label>
+                        <label for="salary">Salary Range</label>
                         <input type="text" id="salary" placeholder="e.g., $80k-$100k">
                     </div>
+                </div>
+                
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="rto">RTO Policy (Optional)</label>
+                        <label for="rto">RTO Policy</label>
                         <select id="rto">
                             <option value="">Not specified</option>
                             <option value="Full Remote">Full Remote</option>
@@ -329,7 +364,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="progress">Progress Status</label>
+                        <label for="progress">Progress Status *</label>
                         <select id="progress" required>
                             <option value="">Select Progress</option>
                             <option value="Pending">Pending</option>
@@ -340,7 +375,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="outcome">Final Outcome (Optional)</label>
+                        <label for="outcome">Final Outcome</label>
                         <select id="outcome">
                             <option value="">None/In Progress</option>
                             <option value="Declined">Declined</option>
@@ -349,19 +384,21 @@
                             <option value="Accepted">Accepted</option>
                         </select>
                     </div>
-                    <button type="submit">Add Application</button>
-                </form>
-            </div>
-
-            <div class="applications-section">
-                <h2>Applications</h2>
-                <div class="applications-list" id="applicationsList">
                 </div>
+                
+                <button type="submit" class="btn">Add Application</button>
+                <button type="button" class="btn" onclick="clearForm()">Clear Form</button>
+            </form>
+        </div>
+
+        <div class="applications-section">
+            <h2>Applications</h2>
+            <div class="applications-list" id="applicationsList">
             </div>
         </div>
 
         <div class="visualization-section">
-            <h2>Application Flow Visualization</h2>
+            <div class="sankey-title">Application Flow Visualization</div>
             <svg id="sankey"></svg>
         </div>
     </div>
@@ -373,6 +410,7 @@
                 this.editingAppId = null;
                 this.initializeEventListeners();
                 this.renderApplications();
+                this.updateStats();
                 this.updateVisualization();
             }
 
@@ -410,15 +448,19 @@
                 this.applications.push(application);
                 this.saveApplications();
                 this.renderApplications();
+                this.updateStats();
                 this.updateVisualization();
                 document.getElementById('applicationForm').reset();
             }
 
             deleteApplication(id) {
-                this.applications = this.applications.filter(app => app.id !== id);
-                this.saveApplications();
-                this.renderApplications();
-                this.updateVisualization();
+                if (confirm('Are you sure you want to delete this job application?')) {
+                    this.applications = this.applications.filter(app => app.id !== id);
+                    this.saveApplications();
+                    this.renderApplications();
+                    this.updateStats();
+                    this.updateVisualization();
+                }
             }
 
             editApplication(id) {
@@ -442,6 +484,7 @@
                     this.editingAppId = null;
                     this.saveApplications();
                     this.renderApplications();
+                    this.updateStats();
                     this.updateVisualization();
                 }
             }
@@ -453,74 +496,113 @@
 
             renderApplications() {
                 const container = document.getElementById('applicationsList');
-                container.innerHTML = '';
+                
+                if (this.applications.length === 0) {
+                    container.innerHTML = '<div class="job-card"><h3>No job applications yet. Add your first one above!</h3></div>';
+                    return;
+                }
 
-                this.applications.forEach(app => {
-                    const item = document.createElement('div');
-                    item.className = `application-item ${this.editingAppId === app.id ? 'editing' : ''}`;
-                    
+                // Sort applications by creation date (newest first)
+                const sortedApplications = [...this.applications].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                container.innerHTML = sortedApplications.map(app => {
                     const progressClass = `status-${app.progress.toLowerCase()}`;
                     const outcomeClass = app.outcome ? `outcome-${app.outcome.toLowerCase()}` : '';
+                    const isEditing = this.editingAppId === app.id;
                     
-                    if (this.editingAppId === app.id) {
-                        item.innerHTML = `
-                            <div>
-                                <div class="company-name">${app.company}</div>
-                                <div>${app.position}</div>
-                            </div>
-                            <div>
-                                <input id="salary-${app.id}" class="edit-input" value="${app.salary || ''}" placeholder="e.g., $80k-$100k">
-                            </div>
-                            <div>
-                                <select id="rto-${app.id}" class="edit-select">
-                                    <option value="" ${!app.rto ? 'selected' : ''}>Not specified</option>
-                                    <option value="Full Remote" ${app.rto === 'Full Remote' ? 'selected' : ''}>Full Remote</option>
-                                    <option value="Hybrid" ${app.rto === 'Hybrid' ? 'selected' : ''}>Hybrid</option>
-                                    <option value="Full In-Office" ${app.rto === 'Full In-Office' ? 'selected' : ''}>Full In-Office</option>
-                                </select>
-                            </div>
-                            <div>
-                                <select id="progress-${app.id}" class="edit-select">
-                                    <option value="Pending" ${app.progress === 'Pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="Applied" ${app.progress === 'Applied' ? 'selected' : ''}>Applied</option>
-                                    <option value="Screening" ${app.progress === 'Screening' ? 'selected' : ''}>Screening</option>
-                                    <option value="Interview" ${app.progress === 'Interview' ? 'selected' : ''}>Interview</option>
-                                    <option value="Offer" ${app.progress === 'Offer' ? 'selected' : ''}>Offer</option>
-                                </select>
-                            </div>
-                            <div>
-                                <select id="outcome-${app.id}" class="edit-select">
-                                    <option value="" ${!app.outcome ? 'selected' : ''}>In Progress</option>
-                                    <option value="Declined" ${app.outcome === 'Declined' ? 'selected' : ''}>Declined</option>
-                                    <option value="Withdrawn" ${app.outcome === 'Withdrawn' ? 'selected' : ''}>Withdrawn</option>
-                                    <option value="Ghosted" ${app.outcome === 'Ghosted' ? 'selected' : ''}>Ghosted</option>
-                                    <option value="Accepted" ${app.outcome === 'Accepted' ? 'selected' : ''}>Accepted</option>
-                                </select>
-                            </div>
-                            <div>
-                                <button class="save-btn" onclick="tracker.saveApplication(${app.id})">Save</button>
-                                <button class="cancel-btn" onclick="tracker.cancelEdit()">Cancel</button>
+                    if (isEditing) {
+                        return `
+                            <div class="job-card editing">
+                                <div class="job-header">
+                                    <div>
+                                        <div class="job-title">${app.position}</div>
+                                        <div class="company-name">${app.company}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="job-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Salary Range</div>
+                                        <input id="salary-${app.id}" class="edit-input" value="${app.salary || ''}" placeholder="e.g., $80k-$100k">
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">RTO Policy</div>
+                                        <select id="rto-${app.id}" class="edit-select">
+                                            <option value="" ${!app.rto ? 'selected' : ''}>Not specified</option>
+                                            <option value="Full Remote" ${app.rto === 'Full Remote' ? 'selected' : ''}>Full Remote</option>
+                                            <option value="Hybrid" ${app.rto === 'Hybrid' ? 'selected' : ''}>Hybrid</option>
+                                            <option value="Full In-Office" ${app.rto === 'Full In-Office' ? 'selected' : ''}>Full In-Office</option>
+                                        </select>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Progress Status</div>
+                                        <select id="progress-${app.id}" class="edit-select">
+                                            <option value="Pending" ${app.progress === 'Pending' ? 'selected' : ''}>Pending</option>
+                                            <option value="Applied" ${app.progress === 'Applied' ? 'selected' : ''}>Applied</option>
+                                            <option value="Screening" ${app.progress === 'Screening' ? 'selected' : ''}>Screening</option>
+                                            <option value="Interview" ${app.progress === 'Interview' ? 'selected' : ''}>Interview</option>
+                                            <option value="Offer" ${app.progress === 'Offer' ? 'selected' : ''}>Offer</option>
+                                        </select>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Final Outcome</div>
+                                        <select id="outcome-${app.id}" class="edit-select">
+                                            <option value="" ${!app.outcome ? 'selected' : ''}>In Progress</option>
+                                            <option value="Declined" ${app.outcome === 'Declined' ? 'selected' : ''}>Declined</option>
+                                            <option value="Withdrawn" ${app.outcome === 'Withdrawn' ? 'selected' : ''}>Withdrawn</option>
+                                            <option value="Ghosted" ${app.outcome === 'Ghosted' ? 'selected' : ''}>Ghosted</option>
+                                            <option value="Accepted" ${app.outcome === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 20px;">
+                                    <button class="btn" onclick="tracker.saveApplication(${app.id})">Save Changes</button>
+                                    <button class="btn" onclick="tracker.cancelEdit()">Cancel</button>
+                                </div>
                             </div>
                         `;
                     } else {
-                        item.innerHTML = `
-                            <div>
-                                <div class="company-name">${app.company}</div>
-                                <div>${app.position}</div>
-                            </div>
-                            <div class="salary-field" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.salary || ''}</div>
-                            <div class="rto-field" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.rto || ''}</div>
-                            <div class="status-badge ${progressClass} clickable" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.progress}</div>
-                            <div class="status-badge ${outcomeClass} clickable" onclick="tracker.editApplication(${app.id})" title="Click to edit">${app.outcome || 'In Progress'}</div>
-                            <div>
-                                <button class="edit-btn" onclick="tracker.editApplication(${app.id})">Edit</button>
-                                <button class="delete-btn" onclick="tracker.deleteApplication(${app.id})">Delete</button>
+                        return `
+                            <div class="job-card">
+                                <div class="job-header">
+                                    <div>
+                                        <div class="job-title">${app.position}</div>
+                                        <div class="company-name">${app.company}</div>
+                                    </div>
+                                    <div>
+                                        <span class="status-badge ${progressClass}">${app.progress}</span>
+                                        ${app.outcome ? `<span class="status-badge ${outcomeClass}">${app.outcome}</span>` : ''}
+                                    </div>
+                                </div>
+                                
+                                <div class="job-details">
+                                    ${app.salary ? `<div class="detail-item"><div class="detail-label">Salary</div><div class="detail-value">${app.salary}</div></div>` : ''}
+                                    ${app.rto ? `<div class="detail-item"><div class="detail-label">RTO Policy</div><div class="detail-value">${app.rto}</div></div>` : ''}
+                                    <div class="detail-item"><div class="detail-label">Created</div><div class="detail-value">${new Date(app.createdAt).toLocaleDateString()}</div></div>
+                                    <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">${app.outcome || 'In Progress'}</div></div>
+                                </div>
+                                
+                                <div style="margin-top: 20px;">
+                                    <button class="btn" onclick="tracker.editApplication(${app.id})">Edit Application</button>
+                                    <button class="btn btn-danger" onclick="tracker.deleteApplication(${app.id})">Delete</button>
+                                </div>
                             </div>
                         `;
                     }
-                    
-                    container.appendChild(item);
-                });
+                }).join('');
+            }
+
+            updateStats() {
+                const total = this.applications.length;
+                const active = this.applications.filter(app => !['Declined', 'Withdrawn', 'Ghosted'].includes(app.outcome)).length;
+                const interviews = this.applications.filter(app => app.progress === 'Interview').length;
+                const offers = this.applications.filter(app => app.progress === 'Offer' || app.outcome === 'Accepted').length;
+
+                document.getElementById('totalJobs').textContent = total;
+                document.getElementById('activeJobs').textContent = active;
+                document.getElementById('interviewJobs').textContent = interviews;
+                document.getElementById('offerJobs').textContent = offers;
             }
 
             updateVisualization() {
@@ -598,9 +680,19 @@
                     links: links.map(d => ({ ...d }))
                 });
 
-                const color = d3.scaleOrdinal()
-                    .domain(['progress', 'outcome'])
-                    .range(['#007bff', '#28a745']);
+                const stageColors = {
+                    'Pending': '#f57c00',
+                    'Applied': '#1976d2',
+                    'Screening': '#f57c00',
+                    'Interview': '#7b1fa2',
+                    'Offer': '#388e3c',
+                    'Declined': '#d32f2f',
+                    'Withdrawn': '#616161',
+                    'Ghosted': '#616161',
+                    'Accepted': '#388e3c'
+                };
+
+                const color = (d) => stageColors[d.name] || '#666';
 
                 const g = svg.append("g");
 
@@ -612,7 +704,7 @@
                     .attr("y", d => d.y0)
                     .attr("height", d => d.y1 - d.y0)
                     .attr("width", d => d.x1 - d.x0)
-                    .attr("fill", d => color(d.category))
+                    .attr("fill", d => color(d))
                     .append("title")
                     .text(d => `${d.name}: ${d.value}`);
 
@@ -649,6 +741,10 @@
                 const saved = localStorage.getItem('jobApplications');
                 return saved ? JSON.parse(saved) : [];
             }
+        }
+
+        function clearForm() {
+            document.getElementById('applicationForm').reset();
         }
 
         const tracker = new JobApplicationTracker();
