@@ -199,13 +199,14 @@
             text-align: center;
         }
 
-        .status-pending { background: #fffde7; color: #f9a825; }
+        .status-pending { background: #f0f4f8; color: #546e7a; }
         .status-applied { background: #e8f4fd; color: #1976d2; }
         .status-screening { background: #fff3e0; color: #f57c00; }
         .status-interview { background: #f3e5f5; color: #7b1fa2; }
-        .status-offer { background: #e8f5e8; color: #388e3c; }
+        .status-offer { background: #fff8e1; color: #ff8f00; }
 
         .outcome-declined { background: #ffebee; color: #d32f2f; }
+        .outcome-rejected { background: #fce4ec; color: #c2185b; }
         .outcome-withdrawn { background: #f5f5f5; color: #616161; }
         .outcome-ghosted { background: #f5f5f5; color: #616161; }
         .outcome-accepted { background: #e8f5e8; color: #388e3c; }
@@ -379,6 +380,7 @@
                         <select id="outcome">
                             <option value="">None/In Progress</option>
                             <option value="Declined">Declined</option>
+                            <option value="Rejected">Rejected</option>
                             <option value="Withdrawn">Withdrawn</option>
                             <option value="Ghosted">Ghosted</option>
                             <option value="Accepted">Accepted</option>
@@ -400,6 +402,26 @@
         <div class="visualization-section">
             <div class="sankey-title">Application Flow Visualization</div>
             <svg id="sankey"></svg>
+        </div>
+
+        <div class="form-section">
+            <h2>Import / Export Data</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="importFile">Import Applications (JSON)</label>
+                    <input type="file" id="importFile" accept=".json" style="margin-bottom: 10px;">
+                    <div style="margin-top: 8px;">
+                        <button type="button" class="btn" onclick="importApplications()">Import from File</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Export Applications</label>
+                    <div style="display: flex; gap: 10px; margin-top: 8px;">
+                        <button type="button" class="btn" onclick="exportApplications()">Export to JSON</button>
+                        <button type="button" class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -549,6 +571,7 @@
                                         <select id="outcome-${app.id}" class="edit-select">
                                             <option value="" ${!app.outcome ? 'selected' : ''}>In Progress</option>
                                             <option value="Declined" ${app.outcome === 'Declined' ? 'selected' : ''}>Declined</option>
+                                            <option value="Rejected" ${app.outcome === 'Rejected' ? 'selected' : ''}>Rejected</option>
                                             <option value="Withdrawn" ${app.outcome === 'Withdrawn' ? 'selected' : ''}>Withdrawn</option>
                                             <option value="Ghosted" ${app.outcome === 'Ghosted' ? 'selected' : ''}>Ghosted</option>
                                             <option value="Accepted" ${app.outcome === 'Accepted' ? 'selected' : ''}>Accepted</option>
@@ -595,7 +618,7 @@
 
             updateStats() {
                 const total = this.applications.length;
-                const active = this.applications.filter(app => !['Declined', 'Withdrawn', 'Ghosted'].includes(app.outcome)).length;
+                const active = this.applications.filter(app => !['Declined', 'Rejected', 'Withdrawn', 'Ghosted'].includes(app.outcome)).length;
                 const interviews = this.applications.filter(app => app.progress === 'Interview').length;
                 const offers = this.applications.filter(app => app.progress === 'Offer' || app.outcome === 'Accepted').length;
 
@@ -644,7 +667,7 @@
                 nodes.push({ id: 'Accepted', name: 'Accepted', category: 'progress' });
 
                 // Add terminating outcomes (not including Accepted since it's in main flow)
-                const terminatingOutcomes = ['Declined', 'Withdrawn', 'Ghosted'];
+                const terminatingOutcomes = ['Declined', 'Rejected', 'Withdrawn', 'Ghosted'];
                 terminatingOutcomes.forEach(outcome => {
                     nodes.push({ id: outcome, name: outcome, category: 'outcome' });
                 });
@@ -703,12 +726,13 @@
                 });
 
                 const stageColors = {
-                    'Pending': '#f9a825',
+                    'Pending': '#546e7a',
                     'Applied': '#1976d2',
                     'Screening': '#f57c00',
                     'Interview': '#7b1fa2',
-                    'Offer': '#388e3c',
+                    'Offer': '#ff8f00',
                     'Declined': '#d32f2f',
+                    'Rejected': '#c2185b',
                     'Withdrawn': '#616161',
                     'Ghosted': '#616161',
                     'Accepted': '#388e3c'
@@ -844,6 +868,112 @@
 
         function clearForm() {
             document.getElementById('applicationForm').reset();
+        }
+
+        function exportApplications() {
+            const applications = tracker.applications;
+            if (applications.length === 0) {
+                alert('No applications to export!');
+                return;
+            }
+
+            const dataStr = JSON.stringify(applications, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `job-applications-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function importApplications() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a JSON file to import.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Validate the data structure
+                    if (!Array.isArray(importedData)) {
+                        throw new Error('Invalid format: Expected an array of applications');
+                    }
+                    
+                    // Validate each application has required fields
+                    const requiredFields = ['company', 'position', 'progress'];
+                    importedData.forEach((app, index) => {
+                        requiredFields.forEach(field => {
+                            if (!app[field]) {
+                                throw new Error(`Invalid application at index ${index}: Missing required field '${field}'`);
+                            }
+                        });
+                        
+                        // Ensure each application has an ID and createdAt
+                        if (!app.id) {
+                            app.id = Date.now() + index;
+                        }
+                        if (!app.createdAt) {
+                            app.createdAt = new Date().toISOString();
+                        }
+                    });
+                    
+                    // Ask user if they want to replace or merge data
+                    const replaceData = tracker.applications.length === 0 || 
+                        confirm('Do you want to replace existing applications? Click Cancel to merge with existing data.');
+                    
+                    if (replaceData) {
+                        tracker.applications = importedData;
+                    } else {
+                        // Merge data, avoiding duplicates based on company and position
+                        importedData.forEach(newApp => {
+                            const exists = tracker.applications.some(existingApp => 
+                                existingApp.company === newApp.company && 
+                                existingApp.position === newApp.position
+                            );
+                            if (!exists) {
+                                tracker.applications.push(newApp);
+                            }
+                        });
+                    }
+                    
+                    tracker.saveApplications();
+                    tracker.renderApplications();
+                    tracker.updateStats();
+                    tracker.updateVisualization();
+                    
+                    alert(`Successfully imported ${importedData.length} applications!`);
+                    fileInput.value = ''; // Clear the file input
+                    
+                } catch (error) {
+                    alert(`Import failed: ${error.message}`);
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (tracker.applications.length === 0) {
+                alert('No data to clear!');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ALL job applications? This cannot be undone.')) {
+                tracker.applications = [];
+                tracker.saveApplications();
+                tracker.renderApplications();
+                tracker.updateStats();
+                tracker.updateVisualization();
+                alert('All application data has been cleared.');
+            }
         }
 
         const tracker = new JobApplicationTracker();
