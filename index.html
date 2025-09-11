@@ -704,32 +704,24 @@
                 const progressStages = ['Pending', 'Applied', 'Screening', 'Interview', 'Offer'];
                 const outcomes = ['Declined', 'Withdrawn', 'Ghosted', 'Accepted'];
 
-                const nodes = [];
-                const links = [];
-
-                // Add progress stages as main flow nodes
-                progressStages.forEach((stage, index) => {
-                    nodes.push({ id: stage, name: stage, category: 'progress' });
-                });
-
-                // Add Accepted as a main flow continuation (after Offer)
-                nodes.push({ id: 'Accepted', name: 'Accepted', category: 'progress' });
-
-                // Add terminating outcomes (not including Accepted since it's in main flow)
-                const terminatingOutcomes = ['Declined', 'Rejected', 'Withdrawn', 'Ghosted'];
-                terminatingOutcomes.forEach(outcome => {
-                    nodes.push({ id: outcome, name: outcome, category: 'outcome' });
-                });
-
                 const flowCounts = {};
+                const usedNodes = new Set();
 
                 this.applications.forEach(app => {
                     const progressIndex = progressStages.indexOf(app.progress);
+                    
+                    // Track used nodes
+                    usedNodes.add(app.progress);
+                    if (app.outcome) {
+                        usedNodes.add(app.outcome);
+                    }
                     
                     // Track flows through all stages up to current progress
                     for (let i = 0; i < progressIndex; i++) {
                         const from = progressStages[i];
                         const to = progressStages[i + 1];
+                        usedNodes.add(from);
+                        usedNodes.add(to);
                         const key = `${from}->${to}`;
                         flowCounts[key] = (flowCounts[key] || 0) + 1;
                     }
@@ -739,6 +731,7 @@
                         if (app.outcome === 'Accepted') {
                             // If accepted, first flow to Offer (if not already there), then to Accepted
                             if (app.progress !== 'Offer') {
+                                usedNodes.add('Offer');
                                 const key = `${app.progress}->Offer`;
                                 flowCounts[key] = (flowCounts[key] || 0) + 1;
                             }
@@ -755,6 +748,26 @@
                     }
                 });
 
+                // Create nodes array only for used statuses
+                const nodes = [];
+                
+                // Add progress stages that are actually used
+                progressStages.forEach(stage => {
+                    if (usedNodes.has(stage)) {
+                        nodes.push({ id: stage, name: stage, category: 'progress' });
+                    }
+                });
+
+                // Add outcomes that are actually used
+                ['Accepted', 'Declined', 'Rejected', 'Withdrawn', 'Ghosted'].forEach(outcome => {
+                    if (usedNodes.has(outcome)) {
+                        const category = outcome === 'Accepted' ? 'progress' : 'outcome';
+                        nodes.push({ id: outcome, name: outcome, category: category });
+                    }
+                });
+
+                const links = [];
+
                 Object.entries(flowCounts).forEach(([key, value]) => {
                     const [source, target] = key.split('->');
                     links.push({
@@ -762,6 +775,23 @@
                         target: nodes.findIndex(n => n.id === target),
                         value: value
                     });
+                });
+
+                // Add node values for standalone nodes (those with no incoming flows)
+                nodes.forEach(node => {
+                    if (!links.some(link => link.target === nodes.indexOf(node))) {
+                        // This node has no incoming flows, add a self-referencing value
+                        const count = this.applications.filter(app => {
+                            if (node.id === app.progress && !app.outcome) {
+                                return true;
+                            }
+                            return false;
+                        }).length;
+                        
+                        if (count > 0) {
+                            node.value = count;
+                        }
+                    }
                 });
 
                 const sankey = d3.sankey()
